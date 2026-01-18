@@ -1,0 +1,7 @@
+{
+  "name": "BSC-LADE 2 - Plataforma de Gestão Estratégica",
+  "description": "Sistema avançado de planejamento e monitoramento estratégico baseado em Balanced Scorecard, com análise inteligente via Gemini API.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
