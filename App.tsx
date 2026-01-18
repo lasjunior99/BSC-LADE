@@ -6,6 +6,24 @@ import IdentidadeOrganizacional from './pages/IdentidadeOrganizacional';
 import ContratoResultados from './pages/ContratoResultados';
 import ProjetosEstrategicos from './pages/ProjetosEstrategicos';
 import Admin from './pages/Admin';
+import { useEffect } from "react";
+import Sidebar from "./components/Sidebar";
+
+function App() {
+
+  useEffect(() => {
+    alert("REACT INICIALIZADO");
+  }, []);
+
+  return (
+    <div>
+      <Sidebar />
+      {/* resto do app */}
+    </div>
+  );
+}
+
+export default App;
 
 const App: React.FC = () => {
   return (
