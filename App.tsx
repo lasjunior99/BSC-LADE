@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
@@ -9,10 +9,6 @@ import ProjetosEstrategicos from "./pages/ProjetosEstrategicos";
 import Admin from "./pages/Admin";
 
 const App: React.FC = () => {
-
-  useEffect(() => {
-    alert("REACT INICIALIZADO");
-  }, []);
 
   return (
     <Router>
