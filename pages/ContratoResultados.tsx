@@ -1,3 +1,4 @@
+import { FEATURES } from "../constants";
 
 import React, { useState } from 'react';
 import PageHeader from '../components/PageHeader';

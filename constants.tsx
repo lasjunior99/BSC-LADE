@@ -8,6 +8,9 @@ export const MOCK_USERS: User[] = [
   { id: '3', name: 'Carlos Santos', email: 'carlos.santos@empresa.com.br', role: UserRole.VIEWER, active: false },
   { id: '4', name: 'Mariana Costa', email: 'mariana.costa@empresa.com.br', role: UserRole.MANAGER, active: true },
 ];
+export const FEATURES = {
+  AI_ENABLED: false,
+};
 
 export const MOCK_OBJECTIVES: StrategicObjective[] = [
   {
