@@ -824,30 +824,244 @@ Novo componente em < 100ms
 
 ## 11. Build e Deploy
 
-### 11.1 Build para Produção
+### 11.1 Arquitetura de Deployment
+
+**Ambiente Oficial de Produção:**
+- 🌐 URL: **https://myapp-bsc-lade.abacusai.app**
+- 📦 Provider: **Abacus.AI**
+- 🔄 CI/CD: Automático ao merge em `main`
+- 🛡️ HTTPS: Padrão (obrigatório)
+
+```
+Local (Vite) → GitHub → Abacus.AI CI/CD → Production
+   ↓              ↓              ↓              ↓
+ Validação    Pull Request   Build+Test   Deployment
+```
+
+### 11.2 Fluxo de Desenvolvimento e Deploy
+
+#### **Fase 1: Desenvolvimento Local (Vite)**
+
+```bash
+npm run dev
+```
+
+**Propósito:**
+- ✅ Validação de interface e funcionalidades
+- ✅ Testes rápidos com Hot Module Replacement
+- ✅ Verificação de comportamento antes do push
+- ℹ️ Ambiente isolado (não afeta produção)
+
+**Servidor Local:**
+- Porta: `http://localhost:3000`
+- Modo: Development (sem otimizações)
+- Variáveis: Lidas de `.env.local`
+
+**Checklist antes de fazer push:**
+- [ ] Componentes renderizam corretamente
+- [ ] Integração Gemini funciona (análise de identidade, sugestão de KPIs)
+- [ ] Navegação entre páginas funciona
+- [ ] Dark mode ativa/desativa
+- [ ] Filtros e formulários funcionam
+- [ ] Não há erros no console (F12)
+
+#### **Fase 2: Build para Produção**
 
 ```bash
 npm run build
 ```
 
-**Output em `dist/`:**
+**O que acontece:**
+1. TypeScript compilado → JavaScript
+2. JSX/TSX transpilado
+3. Código minificado e otimizado
+4. Tree-shaking de imports não usados
+5. Output em pasta `dist/`
+
+**Saída em `dist/`:**
 ```
 dist/
-├── index.html
+├── index.html                   # HTML minificado
 ├── assets/
-│   ├── index-XxXxXxXx.js
-│   ├── index-XxXxXxXx.css
-│   └── [vendors].js
-└── .vite/manifest.json
+│   ├── index-XxXxXxXx.js       # Bundle JavaScript principal
+│   ├── index-XxXxXxXx.css      # CSS inline (zero HTTP requests)
+│   └── vendor-XxXxXxXx.js      # Dependências (React, Router, Gemini)
+└── .vite/manifest.json         # Metadados de assets
 ```
 
-### 11.2 Deploy em Vercel
+**Características de Produção:**
+- 📦 Bundle size: ~120KB gzipped (otimizado)
+- 🗜️ Minificação: Esbuild (rápido)
+- 🔤 Hashing de filenames: Cache busting automático
+- 📊 Source maps: Desativados (segurança)
 
-1. Conectar repo em vercel.com
-2. Build: `npm run build`
-3. Output: `dist`
-4. Adicionar `VITE_GEMINI_API_KEY` em Environment
-5. Deploy automático em cada push
+#### **Fase 3: Validação Local (Antes de Push)**
+
+```bash
+npm run preview
+```
+
+**Propósito:**
+- Simula ambiente de produção localmente
+- Valida bundle final antes de enviar
+- Testa compressão/gzip
+- Performance da build
+
+**Executar:**
+```bash
+npm run build  # Se não existir dist/
+npm run preview
+# Acessa em http://localhost:4173
+```
+
+**Validações:**
+- [ ] Aplicação carrega corretamente
+- [ ] Não há erros 404 em assets
+- [ ] Gemini API funciona
+- [ ] Performance aceitável (< 2s load time)
+
+#### **Fase 4: Push para GitHub**
+
+```bash
+# 1. Status
+git status
+
+# 2. Adicionar arquivos modificados
+git add .
+
+# 3. Commit com mensagem descritiva
+git commit -m "feat: descrição da funcionalidade"
+
+# 4. Push para main
+git push origin main
+```
+
+**Convenção de Mensagens:**
+```
+feat:     Nova funcionalidade
+fix:      Correção de bug
+docs:     Apenas documentação
+style:    Formatação de código
+refactor: Reorganização sem mudar funcionalidade
+perf:     Melhorias de performance
+test:     Adição de testes
+ci:       Mudanças em CI/CD
+```
+
+#### **Fase 5: CI/CD Abacus.AI (Automático)**
+
+```
+Push para main
+    ↓
+Webhook Abacus.AI acionado
+    ↓
+1. Clone do repositório
+2. npm install
+3. npm run build
+4. Testes (se configurado)
+5. Deploy em https://myapp-bsc-lade.abacusai.app
+    ↓
+Produção Atualizada
+```
+
+**Tempo de Deploy:** ~2-5 minutos (após push)
+
+### 11.3 Variáveis de Ambiente em Produção
+
+**Abacus.AI Dashboard:**
+
+1. Acesse dashboard da Abacus.AI
+2. Navegue até **Settings → Environment Variables**
+3. Adicione variáveis necessárias:
+
+```env
+# ========== GEMINI API (PRODUÇÃO) ==========
+VITE_GEMINI_API_KEY=<api-key-producao>
+
+# ========== FIREBASE (Futura) ==========
+VITE_FIREBASE_PROJECT_ID=bsc-lade-prod
+VITE_FIREBASE_API_KEY=<firebase-key-prod>
+```
+
+**Notas Importantes:**
+- ✅ Variáveis em Abacus.AI **nunca** são expostas em logs
+- ✅ Diferentes de `.env.local` (desenvolvimento)
+- ✅ Seguramente injetadas durante build do Vite
+
+### 11.4 Monitoramento pós-Deploy
+
+**URL de Produção:** https://myapp-bsc-lade.abacusai.app
+
+**Verificações pós-deployment:**
+
+```bash
+# 1. Verificar se aplicação está online
+curl -I https://myapp-bsc-lade.abacusai.app
+
+# 2. Confirmar que último commit foi deployado
+# Verificar em: https://myapp-bsc-lade.abacusai.app/metadata.json
+```
+
+**Em caso de erro:**
+
+1. Acessar Abacus.AI Dashboard
+2. Verificar logs de build
+3. Procurar erro em "Build History"
+4. Fazer fix no código local
+5. Push novamente (auto-redeploy)
+
+### 11.5 Rollback em Caso de Problema
+
+Se houver problema em produção:
+
+```bash
+# 1. Identificar commit anterior estável
+git log --oneline
+
+# 2. Reverter
+git revert <commit-id>
+
+# 3. Push (Abacus.AI redeploy automático)
+git push origin main
+```
+
+Ou usar Abacus.AI Dashboard para redeployar commit anterior.
+
+### 11.6 Build Optimization para Abacus.AI
+
+**Configuração em vite.config.ts (futura):**
+
+```typescript
+export default defineConfig({
+  build: {
+    target: 'es2020',           // Browsers modernos
+    minify: 'terser',           // Minificação agressiva
+    sourcemap: false,           // Não incluir source maps em produção
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router-dom'],
+          'gemini': ['@google/genai']
+        }
+      }
+    }
+  }
+});
+```
+
+### 11.7 Domínio Customizado (Futuro)
+
+Se quiser usar domínio próprio (ex: `bsc-lade.com`):
+
+1. Registrar domínio (GoDaddy, Namecheap, etc)
+2. Apontar DNS para Abacus.AI nameservers
+3. Configurar em Abacus.AI Dashboard
+4. Certificado SSL automático (Let's Encrypt)
+
+---
+
+## 12. Directives de Evolução
 
 ---
 
